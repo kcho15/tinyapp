@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/kcho15/tinyapp/issues"
   },
-  "homepage": "https://github.com/kcho15/tinyapp#readme"
+  "homepage": "https://github.com/kcho15/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
