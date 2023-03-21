@@ -19,6 +19,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/", (req, res) => {
+  res.redirect("/urls");
+})
+
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -48,13 +52,23 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//
+// Edit Route
+//
+app.post("/urls/:id/edit", (req,res) => {
+  urlDatabase[req.params.id] = req.body.Edit; 
+  res.redirect("/urls");
+});
+
+
 // 
 // Delete Route
 //
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];      
   res.redirect("/urls");
-})
+});
+
 
 
 app.listen(PORT, () => {
