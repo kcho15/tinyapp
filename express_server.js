@@ -34,6 +34,13 @@ app.post("/urls", (req, res) => {
   urlDatabase[savedShortURL] = savedLongURL; // Save the two as key-value pair to the urlDatabase object 
   res.redirect(`/urls/${savedShortURL}`); // Redirect the user to the show page for the new URL
 });
+
+// Route handler that redirects shortURL's generated and saved to the longURL 
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id; // assign the id parameter from the request URL to variable 
+  const longURL = urlDatabase[shortURL]; // Use the shortURL key in the urlDatabase to look up longURL value 
+  res.redirect(longURL);
+});
  
 app.get("/urls/:id", (req, res) => {
   const IDs = req.params.id; // assigned req.params.id to a variable IDs
