@@ -32,6 +32,7 @@ app.post("/urls", (req, res) => {
   const savedLongURL = req.body.longURL; // Save the long URL entered by the user
   const savedShortURL = generateRandomString(); // Generate new short url 
   urlDatabase[savedShortURL] = savedLongURL; // Save the two as key-value pair to the urlDatabase object 
+  res.redirect(`/urls/${savedShortURL}`); // Redirect the user to the show page for the new URL
 });
  
 app.get("/urls/:id", (req, res) => {
