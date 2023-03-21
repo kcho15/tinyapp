@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+  
 
 app.set("view engine", "ejs");
 
@@ -14,17 +15,23 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 }); 
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+app.get("/urls/:id", (req, res) => {
+  const IDs = req.params.id;
+  const templateVars = { id: IDs, longURL: urlDatabase[IDs] }; // assigned req.params.id to a variable IDs 
+  res.render("urls_show", templateVars);
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello!");
+// });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
+
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
