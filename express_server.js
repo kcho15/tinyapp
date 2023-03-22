@@ -60,7 +60,6 @@ app.post("/urls/:id/edit", (req,res) => {
   res.redirect("/urls");
 });
 
-
 // 
 // Delete Route
 //
@@ -69,6 +68,14 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+//
+// Login Route
+//
+app.post("/login", (req, res) => {      
+  const username = req.body.username;  // save the username entered in the submission req.body
+  res.cookie(username, username);   // set a cookie to store username, name and value is username variable 
+  res.redirect("/urls");          // redirect back to urls page
+});
 
 
 app.listen(PORT, () => {
