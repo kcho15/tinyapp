@@ -18,14 +18,29 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); 
 
-//
-// Routes 
-//
+// Global Objects 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userA: {
+    id: "randomA",
+    email: "a@a.com",
+    password: "1234",
+  },
+  userB: {
+    id: "randomB",
+    email: "b@b.com",
+    password: "1234",
+  },
+};
+
+
+//
+// Routes 
+//
 app.get("/", (req, res) => {
   res.redirect("/urls");
 })
@@ -116,9 +131,18 @@ app.get("/register", (req, res) => {
 
 // POST - user inputs registration items 
 app.post("/register", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password; 
-  console.log(`User ${email} has registered. Password is ${password}!`)
+  // assigning a new user a random string as an ID, populate their registration email and password
+  let id = generateRandomString();
+  users[id] = {
+    id,
+    email: req.body.email,
+    password: req.body.password
+  };
+ 
+  res.cookie('user_id', users[id].id); // set user id as cookie 
+  // console.log('users', users);                 // debugging 
+  // console.log('user_id cookie', users[id].id)  // debugging
+  
   return res.redirect("/register");
 
 });
