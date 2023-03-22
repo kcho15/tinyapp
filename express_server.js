@@ -12,9 +12,8 @@ const generateRandomString = function() {
   return result;
 }; 
 
-//
+
 // Middleware 
-//
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); 
@@ -105,6 +104,27 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username")
   res.redirect("/urls");
 })
+
+//
+// 'Register' Route
+//
+// GET - render the page
+app.get("/register", (req, res) => {
+  
+  return res.render("register", {username: null});
+});
+
+// POST - user inputs registration items 
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password; 
+  console.log(`User ${email} has registered. Password is ${password}!`)
+  return res.redirect("/register");
+
+});
+
+
+
 
 
 app.listen(PORT, () => {
