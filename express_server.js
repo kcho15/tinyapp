@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const cookieParser = require('cookie-parser'); 
   
 const generateRandomString = function() {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -11,9 +12,16 @@ const generateRandomString = function() {
   return result;
 }; 
 
+//
+// Middleware 
+//
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); 
 
+//
+// Routes 
+//
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -24,12 +32,18 @@ app.get("/", (req, res) => {
 })
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies["username"],
+  };
   res.render("urls_index", templateVars);
 }); 
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { 
+    username: req.cookies["username"],
+  };  
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -47,21 +61,27 @@ app.get("/u/:id", (req, res) => {
 });
  
 app.get("/urls/:id", (req, res) => {
-  const IDs = req.params.id; // assigned req.params.id to a variable IDs
-  const templateVars = { id: IDs, longURL: urlDatabase[IDs], shortURL: generateRandomString() }; 
+  const id = req.params.id; // assigned req.params.id to a variable IDs
+  const username = req.cookies["username"]
+  const templateVars = { 
+    id,
+    longURL: urlDatabase[id],
+    shortURL: id,
+    username
+  }; 
   res.render("urls_show", templateVars);
 });
 
 //
-// Edit Route
+// 'Edit' Route
 //
 app.post("/urls/:id/edit", (req,res) => {
-  urlDatabase[req.params.id] = req.body.Edit; 
+  urlDatabase[req.params.id] = req.body.edit; 
   res.redirect("/urls");
 });
 
 // 
-// Delete Route
+// 'Delete' Route
 //
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];      
@@ -69,11 +89,11 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 //
-// Login Route
+// 'Login' Route
 //
 app.post("/login", (req, res) => {      
   const username = req.body.username;  // save the username entered in the submission req.body
-  res.cookie(username, username);   // set a cookie to store username, name and value is username variable 
+  res.cookie("username", username);   // set a cookie to store username, name and value is username variable 
   res.redirect("/urls");          // redirect back to urls page
 });
 
