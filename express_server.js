@@ -2,21 +2,6 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser'); 
-  
-const generateRandomString = function() {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}; 
-
-
-// Middleware 
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser()); 
 
 // Global Objects 
 const urlDatabase = {
@@ -37,7 +22,34 @@ const users = {
   },
 };
 
+//
+// Helper Functions
+//
+const generateRandomString = function() {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}; 
+
 // function to get user id by email 
+const getUserByEmail = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+  return null; 
+}
+
+// Middleware 
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); 
+
+
 
 //
 // Routes 
@@ -142,7 +154,16 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
- 
+  
+  if(users[id] === "" || users[id]["password"] === ""){
+    return res.status(400).send('Please enter a username and password.')
+  }
+
+  // function that searches through user object and checks if email already exists 
+  if (getUserByEmail(req.body.email)) {
+    return res.status(400).send('That username is not available.')
+  }  
+  
   res.cookie('username', req.body.email); // set user id as cookie 
   // console.log('users', users);                 // debugging 
   // console.log('user_id cookie', req.body.email)  // debugging
