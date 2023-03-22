@@ -26,17 +26,18 @@ const urlDatabase = {
 
 const users = {
   userA: {
-    id: "randomA",
+    id: "userA",
     email: "a@a.com",
     password: "1234",
   },
   userB: {
-    id: "randomB",
+    id: "userB",
     email: "b@b.com",
     password: "1234",
   },
 };
 
+// function to get user id by email 
 
 //
 // Routes 
@@ -48,14 +49,16 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"],
+    users: req.cookies["users"],
+    username: req.cookies.username // [email]
   };
   res.render("urls_index", templateVars);
 }); 
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    users: req.cookies["users"],
+    username: req.cookies.username
   };  
   res.render("urls_new", templateVars);
 });
@@ -76,12 +79,13 @@ app.get("/u/:id", (req, res) => {
  
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id; // assigned req.params.id to a variable IDs
-  const username = req.cookies["username"]
+  const userId = req.cookies["username"]
   const templateVars = { 
     id,
     longURL: urlDatabase[id],
     shortURL: id,
-    username
+    users,
+    username: users[userId]["email"]  
   }; 
   res.render("urls_show", templateVars);
 });
@@ -139,11 +143,11 @@ app.post("/register", (req, res) => {
     password: req.body.password
   };
  
-  res.cookie('user_id', users[id].id); // set user id as cookie 
+  res.cookie('username', req.body.email); // set user id as cookie 
   // console.log('users', users);                 // debugging 
-  // console.log('user_id cookie', users[id].id)  // debugging
+  // console.log('user_id cookie', req.body.email)  // debugging
   
-  return res.redirect("/register");
+  return res.redirect("/urls");
 
 });
 
