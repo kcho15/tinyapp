@@ -1,21 +1,20 @@
 const express = require("express");
 const app = express();
-const PORT = 8081; // default port 8080
+const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser'); 
 
 // Global Objects 
 const urlDatabase = {
-  "b2xVn2": {
+  "aJ481W": {
     longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ481W",
+    userID: "userA",
   },
-  "9sm5xK": {
+  "afgghd": {
     longURL: "http://www.google.com",
-    userID:"aJ481W"
-  },
-
+    userID: "userB"
+  }
 }; 
-
+ 
 const users = {
   userA: {
     id: "userA",
@@ -85,42 +84,37 @@ app.get("/", (req, res) => {
 
 // GET /urls
 app.get("/urls", (req, res) => {
-  const email = req.body.email;
   const userId = req.cookies["userId"];
 
+  // check if user has cookie
   if (!userId) {
-    return res.redirect("/login"); 
-  } 
-  const user = users[userId]; 
-  // console.log('user', user)     // debugging 
-  
-  // if not correct user, do no render other urls 
-  let userURLs = urlsForUser(userId);
-  // generate the specific user's urls for rendering 
-  console.log('userURLs', userURLs)
-  // console.log('req.body.longURL', req.body.longURL) // debugging 
-  // const userURLs = req.body.longURL; // undefined 
+    return res.status(401).send('<h1>401 Unauthorized. Please login or register.</h1>');
+  }
 
+  // happy path - user is logged in, user can access own urls  
+  const user = users[userId]; 
+  const userURLs = urlsForUser(userId);
+
+  // render the page 
   const templateVars = { 
-                      // missing something here or in urls_index 
-      urls: userURLs, 
-      user: user      // undefined error?? 
+      urls: userURLs,  
+      user: user       
     };
 
-  console.log('urls', urlsForUser) // debugging 
+  // console.log('urls', urlsForUser) // debugging 
   res.render("urls_index", templateVars);
 }); 
 
 // GET urls/new 
 app.get("/urls/new", (req, res) => {  
-  
-  const email = req.body.email;
   const userId = req.cookies["userId"];
-  
-  if (!userId) {  // redirect to /login if no cookie (not logged in)
+
+  // redirect to /login if no cookie (not logged in)
+  if (!userId) {  
     return res.redirect("/login")
   }
   
+  // happy path - user is logged in, render page 
   const user = users[userId];
   const templateVars = { 
     user: user
@@ -130,29 +124,37 @@ app.get("/urls/new", (req, res) => {
 
 // POST url route (after the new url has been entered)
 app.post("/urls", (req, res) => {
-  // const email = req.body.email;
   const userId = req.cookies["userId"];
-  
-  if (!userId) {  // users not logged in cannot add urls to database 
-    return res.status(401).send('Access Denied! Register or log in to use TinyApp!') 
+
+  // users not logged in cannot add urls to database 
+  if (!userId) {  
+    return res.status(401).send('<h1>Access Denied! Register or log in to use TinyApp!</h1>') 
   }
+
+  // happy path - save the url submission 
   const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
   const shortURL = generateRandomString(); // Generate new short url 
   urlDatabase[shortURL] = { 
       longURL: savedLongURL, 
       userID: userId 
-  }; // Save the two as key-value pair to the urlDatabase object 
+  }; 
   res.redirect(`/urls/${shortURL}`); // Redirect the user to the show page for the new URL
 });
 
 // GET /u/:id - Route handler that redirects shortURL's generated and saved to the longURL 
 app.get("/u/:id", (req, res) => {
-  
   const userId = req.cookies["userId"];
+
+  // if not logged in, no access to this page
+  if (!userId) {
+    return res.status(401).send('<h1>Access Denied! Register or log in to use TinyApp!</h1>') 
+  }
+
   const shortURL = req.params.id; // assign the id parameter from the request URL to variable
   const longURL = urlDatabase[shortURL].longURL; // Use the shortURL key in the urlDatabase to look up longURL value 
   
-  if (!longURL) {     // if the longURL does not exist (shortURL key is invalid)
+  // if the longURL does not exist (shortURL key is invalid)
+  if (!longURL) {     
     return res.status(404).send('<h1>404 Page Not Found</h1>');
   }
     res.redirect(longURL);
@@ -160,50 +162,47 @@ app.get("/u/:id", (req, res) => {
 
 // GET /urls/:id
 app.get("/urls/:id", (req, res) => {
-  const userId = req.cookies["userId"]; // this will change to req.session.user_id 
-  const user = users[userId];
   const id = req.params.id; // keep this 
+  const userId = req.cookies["userId"]; // this will change to req.session.user_id 
+  const url = urlDatabase[id]; 
+
+  // if not logged in, no access to urls
+  if (!userId || (!url || url.userID !== userId)) {
+    return res.status(401).send('<h1>Access Denied!</h1>') 
+  }
+
+  // happy path - render page 
+  const user = users[userId]; 
   const longURL = urlDatabase[id].longURL;  
 
   const templateVars = { 
     id: id,
-    longURL,     // 
+    longURL,         
     user: user      // this will change to users[req.session.userId]
   }; 
   res.render("urls_show", templateVars);
-});
+}); 
 
 
-// POST 'Edit' Route
-app.post("/urls/:id/edit", (req,res) => {
-  urlDatabase[req.params.id].longURL = req.body.edit;  // changed to longURL
-  res.redirect("/urls");
-});
-
-// POST 'Delete' Route
-app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];      
-  res.redirect("/urls");
-});
 
 // GET 'Login' Route
 app.get("/login", (req, res) => {
   const email = req.body.email;
   const userId = req.cookies["userId"];
   const user = users[userId];
-
+  
   // if logged in already, redirect to /urls
   if (userId) {
     return res.redirect("/urls");
   }
-
+  
   const templateVars = { 
     user,
     username: email
   };
-
+  
   res.render("login", templateVars)
-
+  
 });
 
 // POST 'Login' Route
@@ -211,14 +210,14 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const user = getUserByEmail(email);
-
+  
   if (!user || user.password !== password) {
     return res.status(403).send('Please enter a valid username and password.') 
   }
-      
+  
   const userId = user.id;          // save the email entered in the submission req.body
-    res.cookie("userId", userId);  // set a cookie to store email 
-    return res.redirect("/urls");  // redirect back to urls page         
+  res.cookie("userId", userId);  // set a cookie to store email 
+  return res.redirect("/urls");  // redirect back to urls page         
 });
 
 // POST 'Log out' Route
@@ -233,7 +232,7 @@ app.get("/register", (req, res) => {
   const email = req.body.email;
   const userId = req.cookies["userId"];
   const user = users[userId];
-
+  
   // if logged in already, redirect to /urls
   if (userId) {
     return res.redirect("/urls");
@@ -247,10 +246,10 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   
   if (!email || !password) {
-     return res.status(400).send('Please enter a username and password.')
+    return res.status(400).send('Please enter a username and password.')
   } 
   const userFound = getUserByEmail(email); 
- 
+  
   if (userFound) {
     // console.log('get user fn', userFound);    // debugging 
     // console.log('users', users);              // debugging 
@@ -265,14 +264,28 @@ app.post("/register", (req, res) => {
     password,
   };
   
+  // POST 'Edit' Route
+  app.post("/urls/:id/edit", (req,res) => {
+    urlDatabase[req.params.id].longURL = req.body.edit;  // changed to longURL
+    res.redirect("/urls");
+  });
+  
+  // POST 'Delete' Route
+  app.post("/urls/:id/delete", (req, res) => {
+    delete urlDatabase[req.params.id];      
+    res.redirect("/urls");
+  });
+
+  // Setting cookie 
   res.cookie('userId', id); // set user id as cookie 
   // console.log('user_id cookie', req.body.email)  // debugging
   
   return res.redirect("/urls");
 });
 
-
+// Server on 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+ 
