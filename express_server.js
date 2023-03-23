@@ -59,18 +59,26 @@ app.get("/", (req, res) => {
 })
 
 app.get("/urls", (req, res) => {
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+
+  if (!userId) {
+    return res.redirect("/login"); 
+  } 
+  const user = users[userId];  
   const templateVars = { 
     urls: urlDatabase,
-    users: req.cookies["users"],
-    username: req.cookies.username // [email]
+    username: user.email 
   };
   res.render("urls_index", templateVars);
 }); 
 
 app.get("/urls/new", (req, res) => {
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  const user = users[userId];
   const templateVars = { 
-    users: req.cookies["users"],
-    username: req.cookies.username
+    username: user.email
   };  
   res.render("urls_new", templateVars);
 });
@@ -90,14 +98,17 @@ app.get("/u/:id", (req, res) => {
 });
  
 app.get("/urls/:id", (req, res) => {
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  const user = users[userId];
   const id = req.params.id; // assigned req.params.id to a variable IDs
-  const userId = req.cookies["username"]
+  
   const templateVars = { 
     id,
     longURL: urlDatabase[id],
     shortURL: id,
     users,
-    username: users[userId]["email"]  
+    username: user.email  
   }; 
   res.render("urls_show", templateVars);
 });
@@ -121,19 +132,41 @@ app.post("/urls/:id/delete", (req, res) => {
 //
 // 'Login' Route
 //
+
+app.get("/login", (req, res) => {
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  const user = users[userId];
+
+  const templateVars = { 
+    users,
+    username: email
+  }; 
+  res.render("login", templateVars)
+})
+
 app.post("/login", (req, res) => {      
-  const username = req.body.username;  // save the username entered in the submission req.body
-  res.cookie("username", username);   // set a cookie to store username, name and value is username variable 
-  res.redirect("/urls");          // redirect back to urls page
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = getUserByEmail(email);
+
+  if (!user || user.password !== password) {
+    return res.status(400).send('Please enter a valid username and password.') 
+  }
+      
+  const userId = user.id;          // save the username entered in the submission req.body
+    res.cookie("userId", userId);   // set a cookie to store username, name and value is username variable 
+    return res.redirect("/urls");            // redirect back to urls page
+            
 });
 
 //
 // 'Log out' Route
 //
 app.post("/logout", (req, res) => {
-  const username = req.body.username;
-  res.clearCookie("username")
-  res.redirect("/urls");
+  
+  res.clearCookie("userId")
+  res.redirect("/login");
 })
 
 //
@@ -147,34 +180,34 @@ app.get("/register", (req, res) => {
 
 // POST - user inputs registration items 
 app.post("/register", (req, res) => {
-  // assigning a new user a random string as an ID, populate their registration email and password
-  let id = generateRandomString();
-  users[id] = {
-    id,
-    email: req.body.email,
-    password: req.body.password
-  };
+  const email = req.body.email;
+  const password = req.body.password;
   
-  if(users[id] === "" || users[id]["password"] === ""){
-    return res.status(400).send('Please enter a username and password.')
-  }
-
-  // function that searches through user object and checks if email already exists 
-  if (getUserByEmail(req.body.email)) {
+  if (!email || !password) {
+     return res.status(400).send('Please enter a username and password.')
+  } 
+  const userFound = getUserByEmail(email); 
+ 
+  if (userFound) {
+    console.log('get user fn', userFound);      // debugging 
+    // console.log('users', users);             // debugging 
     return res.status(400).send('That username is not available.')
   }  
   
-  res.cookie('username', req.body.email); // set user id as cookie 
-  // console.log('users', users);                 // debugging 
+  // assigning a new user a random string as an ID, populate their registration email and password
+  const id = generateRandomString();
+  users[id] = {
+    id,
+    email,
+    password,
+  };
+  
+  res.cookie('userId', id); // set user id as cookie 
   // console.log('user_id cookie', req.body.email)  // debugging
   
   return res.redirect("/urls");
 
 });
-
-
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
