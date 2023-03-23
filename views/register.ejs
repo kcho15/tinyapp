@@ -11,22 +11,36 @@
   integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
   crossorigin="anonymous"
 />
+<style>
+  .userform {
+    margin: 1rem;
+  }
+  label {
+    display: block;
+    font-weight: bold;
+  }
+  input {
+    margin-bottom: 1rem;
+  }
+</style>
 </head>
 <body>
   <%- include('partials/_header') %>
-  <h1>Register an account</h1>
-  
-  <form method="post" action="/register">
-    <label>Email:</label>
-    <!-- name has to be included in input as the key property to look up -->
-    <input name="email" type="email"/> 
-    <br/>
-    <label>Password:</label>
-    <input name="password" type="password"/> 
-    <br/>
-    <button type="submit">Register!</button>
-  </form>
-  
+  <div class="userform">
+    <h1>Create Account</h1>
+    
+    <form method="post" action="/register">
+      <label>Email:</label>
+      <!-- name has to be included in input as the key property to look up -->
+      <input name="email" type="email" placeholder="Enter email"/> 
+      <br/>
+      <label>Password:</label>
+      <input name="password" type="password" placeholder="Password"/> 
+      <br/>
+      <button type="submit">Register!</button>
+    </form>
+  </div>
+
   <script
   src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
   integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

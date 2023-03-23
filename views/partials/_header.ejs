@@ -1,6 +1,6 @@
 <header>
   <nav class="navbar navbar-expand-md navbar-dark bg-success">
-    <a class="navbar-brand" href="/urls">TinyApp</a>
+    <a class="navbar-brand" href="/urls" style="font-weight:bold;">TinyApp</a>
     <button
     class="navbar-toggler"
     type="button"
@@ -14,10 +14,12 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav mr-auto">
-      <a class="nav-item nav-link" href="/urls">[ My URLs ]</a>
-      <a class="nav-item nav-link" href="/urls/new">[ Create New URL ]</a>
-      <a class="nav-item nav-link" href="/register">[ Register ]</a>
-      <a class="nav-item nav-link" href="/login">[ Login ]</a>
+      <a class="nav-item nav-link" href="/urls" style="font-weight:bold;">My URLs</a>
+      <a class="nav-item nav-link" href="/urls/new" style="font-weight:bold;">Create New URL</a>
+    </div>
+    <div class="navbar-nav ml-auto">
+      <a class="nav-item nav-link" href="/login" style="font-weight:bold;">Login</a>
+      <a class="nav-item nav-link" href="/register" style="font-weight:bold;">Register</a>
     </div>
     <div class="navbar-nav">
       <% if (username) { %>
@@ -27,12 +29,14 @@
         <form method="POST" action="/logout">
           <button type="submit" class="btn btn-outline-light">Logout</button>
         </form>
-    </div>
+    
       <% } else { %>
         <form class="form-inline ml-auto" method="POST" action="/login">
           <div class="form-group mx-sm-2">
           </div>  
         </form>
       <% } %>
+    </div>
+  </div>
   </nav>
 </header>

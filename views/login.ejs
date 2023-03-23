@@ -11,21 +11,36 @@
   integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
   crossorigin="anonymous"
 />
+<style>
+  .userform {
+    margin: 1rem;
+  }
+  label {
+    display: block;
+    font-weight: bold;
+  }
+  input {
+    margin-bottom: 1rem;
+  }
+</style>
 </head>
 <body>
   <%- include('partials/_header') %>
-  <h1>Login</h1>
+  <div class="userform">
+    <h1>Login</h1>
   
-  <form method="post" action="/login">
-    <label>Email:</label>
-    <!-- name has to be included in input as the key property to look up -->
-    <input name="email" type="email"/> 
-    <br/>
-    <label>Password:</label>
-    <input name="password" type="password"/> 
-    <br/>
-    <button type="submit">Login</button>
-  </form>
+    <form method="post" action="/login">
+      <label>Email:</label>
+      <!-- name has to be included in input as the key property to look up -->
+      <input name="email" type="email" placeholder="Enter email"/> 
+      <br/>
+      <label>Password:</label>
+      <input name="password" type="password" placeholder="Password"/> 
+      <br/>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+ 
   
   <script
   src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

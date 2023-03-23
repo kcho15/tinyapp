@@ -151,11 +151,11 @@ app.post("/login", (req, res) => {
   const user = getUserByEmail(email);
 
   if (!user || user.password !== password) {
-    return res.status(400).send('Please enter a valid username and password.') 
+    return res.status(403).send('Please enter a valid username and password.') 
   }
       
-  const userId = user.id;          // save the username entered in the submission req.body
-    res.cookie("userId", userId);   // set a cookie to store username, name and value is username variable 
+  const userId = user.id;          // save the email entered in the submission req.body
+    res.cookie("userId", userId);   // set a cookie to store email 
     return res.redirect("/urls");            // redirect back to urls page
             
 });
@@ -189,8 +189,8 @@ app.post("/register", (req, res) => {
   const userFound = getUserByEmail(email); 
  
   if (userFound) {
-    console.log('get user fn', userFound);      // debugging 
-    // console.log('users', users);             // debugging 
+    // console.log('get user fn', userFound);    // debugging 
+    // console.log('users', users);              // debugging 
     return res.status(400).send('That username is not available.')
   }  
   
