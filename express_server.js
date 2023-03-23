@@ -66,7 +66,7 @@ app.get("/urls", (req, res) => {
     return res.redirect("/login"); 
   } 
   const user = users[userId]; 
-  console.log('user', user) 
+  // console.log('user', user)     // debugging 
   const templateVars = { 
     urls: urlDatabase,
     username: user.email 
@@ -93,6 +93,12 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  
+  if (!userId) {  // users not logged in cannot add urls to database 
+    return res.status(401).send('Access Denied! Register or log in to use TinyApp!') 
+  }
   const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
   const savedShortURL = generateRandomString(); // Generate new short url 
   urlDatabase[savedShortURL] = savedLongURL; // Save the two as key-value pair to the urlDatabase object 
@@ -147,6 +153,11 @@ app.get("/login", (req, res) => {
   const userId = req.cookies["userId"];
   const user = users[userId];
 
+  // if logged in already, redirect to /urls
+  if (userId) {
+    return res.redirect("/urls");
+  }
+
   const templateVars = { 
     users,
     username: email
@@ -183,8 +194,15 @@ app.post("/logout", (req, res) => {
 //
 // GET - render the page
 app.get("/register", (req, res) => {
-  
-  return res.render("register", {username: null});
+const email = req.body.email;
+const userId = req.cookies["userId"];
+const user = users[userId];
+
+// if logged in already, redirect to /urls
+if (userId) {
+  return res.redirect("/urls");
+}  
+return res.render("register", {username: null});
 });
 
 // POST - user inputs registration items 
