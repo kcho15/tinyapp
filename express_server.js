@@ -75,7 +75,7 @@ app.get("/urls", (req, res) => {
   // console.log('user', user)     // debugging 
   const templateVars = { 
     urls: urlDatabase,
-    username: user.email 
+    username: user.email  // undefined error?? 
   };
 
   // console.log('urlDatabase[id].longURL', urlDatabase[id].longURL) // debugging 
@@ -142,26 +142,20 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//
-// 'Edit' Route
-//
+
+// POST 'Edit' Route
 app.post("/urls/:id/edit", (req,res) => {
-  urlDatabase[req.params.id] = req.body.edit; 
+  urlDatabase[req.params.id].longURL = req.body.edit;  // changed to longURL
   res.redirect("/urls");
 });
 
-// 
-// 'Delete' Route
-//
+// POST 'Delete' Route
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];      
   res.redirect("/urls");
 });
 
-//
-// 'Login' Route
-//
-
+// GET 'Login' Route
 app.get("/login", (req, res) => {
   const email = req.body.email;
   const userId = req.cookies["userId"];
@@ -175,10 +169,13 @@ app.get("/login", (req, res) => {
   const templateVars = { 
     users,
     username: email
-  }; 
-  res.render("login", templateVars)
-})
+  };
 
+  res.render("login", templateVars)
+
+});
+
+// POST 'Login' Route
 app.post("/login", (req, res) => {      
   const email = req.body.email;
   const password = req.body.password;
@@ -189,24 +186,18 @@ app.post("/login", (req, res) => {
   }
       
   const userId = user.id;          // save the email entered in the submission req.body
-    res.cookie("userId", userId);   // set a cookie to store email 
-    return res.redirect("/urls");            // redirect back to urls page
-            
+    res.cookie("userId", userId);  // set a cookie to store email 
+    return res.redirect("/urls");  // redirect back to urls page         
 });
 
-//
-// 'Log out' Route
-//
+// POST 'Log out' Route
 app.post("/logout", (req, res) => {
   
   res.clearCookie("userId")
   res.redirect("/login");
-})
+});
 
-//
-// 'Register' Route
-//
-// GET - render the page
+// GET 'Register' Route
 app.get("/register", (req, res) => {
 const email = req.body.email;
 const userId = req.cookies["userId"];
@@ -219,7 +210,7 @@ if (userId) {
 return res.render("register", {username: null});
 });
 
-// POST - user inputs registration items 
+// POST 'Register' Route - user inputs registration items 
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -247,8 +238,8 @@ app.post("/register", (req, res) => {
   // console.log('user_id cookie', req.body.email)  // debugging
   
   return res.redirect("/urls");
-
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
