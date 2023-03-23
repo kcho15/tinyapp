@@ -107,9 +107,15 @@ app.post("/urls", (req, res) => {
 
 // Route handler that redirects shortURL's generated and saved to the longURL 
 app.get("/u/:id", (req, res) => {
-  const shortURL = req.params.id; // assign the id parameter from the request URL to variable 
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  const shortURL = req.params.id; // assign the id parameter from the request URL to variable
   const longURL = urlDatabase[shortURL]; // Use the shortURL key in the urlDatabase to look up longURL value 
-  res.redirect(longURL);
+  
+  if (!longURL) {     // if the longURL does not exist (shortURL key is invalid)
+    return res.status(404).send('<h1>404 Page Not Found</h1>');
+  }
+    res.redirect(longURL);
 });
  
 app.get("/urls/:id", (req, res) => {
