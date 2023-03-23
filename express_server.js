@@ -5,9 +5,15 @@ const cookieParser = require('cookie-parser');
 
 // Global Objects 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ481W",
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID:"aJ481W"
+  }
+}; 
 
 const users = {
   userA: {
@@ -72,7 +78,7 @@ app.get("/urls", (req, res) => {
     username: user.email 
   };
 
-  console.log('urlDatabase', urlDatabase) // debugging 
+  // console.log('urlDatabase[id].longURL', urlDatabase[id].longURL) // debugging 
   res.render("urls_index", templateVars);
 }); 
 
@@ -92,6 +98,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// POST url route 
 app.post("/urls", (req, res) => {
   const email = req.body.email;
   const userId = req.cookies["userId"];
@@ -101,16 +108,16 @@ app.post("/urls", (req, res) => {
   }
   const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
   const savedShortURL = generateRandomString(); // Generate new short url 
-  urlDatabase[savedShortURL] = savedLongURL; // Save the two as key-value pair to the urlDatabase object 
+  urlDatabase[savedShortURL] = { longURL: savedLongURL, userID: userId }; // Save the two as key-value pair to the urlDatabase object 
   res.redirect(`/urls/${savedShortURL}`); // Redirect the user to the show page for the new URL
 });
 
 // Route handler that redirects shortURL's generated and saved to the longURL 
 app.get("/u/:id", (req, res) => {
-  const email = req.body.email;
+  
   const userId = req.cookies["userId"];
   const shortURL = req.params.id; // assign the id parameter from the request URL to variable
-  const longURL = urlDatabase[shortURL]; // Use the shortURL key in the urlDatabase to look up longURL value 
+  const longURL = urlDatabase[shortURL].longURL; // Use the shortURL key in the urlDatabase to look up longURL value 
   
   if (!longURL) {     // if the longURL does not exist (shortURL key is invalid)
     return res.status(404).send('<h1>404 Page Not Found</h1>');
@@ -123,10 +130,11 @@ app.get("/urls/:id", (req, res) => {
   const userId = req.cookies["userId"];
   const user = users[userId];
   const id = req.params.id; // assigned req.params.id to a variable IDs
-  
+  const longURL = urlDatabase[id].longURL; 
+
   const templateVars = { 
     id,
-    longURL: urlDatabase[id],
+    longURL,
     shortURL: id,
     users,
     username: user.email  
