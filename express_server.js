@@ -55,7 +55,7 @@ app.use(cookieParser());
 // Routes 
 //
 app.get("/", (req, res) => {
-  res.redirect("/urls");
+  res.redirect("/login");
 })
 
 app.get("/urls", (req, res) => {
@@ -65,17 +65,26 @@ app.get("/urls", (req, res) => {
   if (!userId) {
     return res.redirect("/login"); 
   } 
-  const user = users[userId];  
+  const user = users[userId]; 
+  console.log('user', user) 
   const templateVars = { 
     urls: urlDatabase,
     username: user.email 
   };
+
+  console.log('urlDatabase', urlDatabase) // debugging 
   res.render("urls_index", templateVars);
 }); 
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", (req, res) => {  
+  
   const email = req.body.email;
   const userId = req.cookies["userId"];
+  
+  if (!userId) {  // redirect to /login if no cookie (not logged in)
+    return res.redirect("/login")
+  }
+  
   const user = users[userId];
   const templateVars = { 
     username: user.email
@@ -84,7 +93,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const savedLongURL = req.body.longURL; // Save the long URL entered by the user
+  const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
   const savedShortURL = generateRandomString(); // Generate new short url 
   urlDatabase[savedShortURL] = savedLongURL; // Save the two as key-value pair to the urlDatabase object 
   res.redirect(`/urls/${savedShortURL}`); // Redirect the user to the show page for the new URL
