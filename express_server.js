@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8081; // default port 8080
 const cookieParser = require('cookie-parser'); 
 
 // Global Objects 
@@ -12,7 +12,8 @@ const urlDatabase = {
   "9sm5xK": {
     longURL: "http://www.google.com",
     userID:"aJ481W"
-  }
+  },
+
 }; 
 
 const users = {
@@ -20,11 +21,15 @@ const users = {
     id: "userA",
     email: "a@a.com",
     password: "1234",
+    
+    
+    // urls: "urls", 
   },
   userB: {
     id: "userB",
     email: "b@b.com",
     password: "1234",
+
   },
 };
 
@@ -50,6 +55,20 @@ const getUserByEmail = function(email) {
   return null; 
 }
 
+// function which returns the URLs where the userID is equal to the id of the currently logged-in user
+const urlsForUser = function (id) {
+  let result = {};
+  for (const key in urlDatabase) {
+    if (urlDatabase[key].userID === id) { // id being the cookie value
+      //return urlDatabase[user].longURL; 
+      result[key] = { 
+        longURL: urlDatabase[key].longURL
+      }
+    } 
+  }
+  return result;
+};
+
 // Middleware 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -62,8 +81,9 @@ app.use(cookieParser());
 //
 app.get("/", (req, res) => {
   res.redirect("/login");
-})
+});
 
+// GET /urls
 app.get("/urls", (req, res) => {
   const email = req.body.email;
   const userId = req.cookies["userId"];
@@ -73,15 +93,25 @@ app.get("/urls", (req, res) => {
   } 
   const user = users[userId]; 
   // console.log('user', user)     // debugging 
-  const templateVars = { 
-    urls: urlDatabase,
-    username: user.email  // undefined error?? 
-  };
+  
+  // if not correct user, do no render other urls 
+  let userURLs = urlsForUser(userId);
+  // generate the specific user's urls for rendering 
+  console.log('userURLs', userURLs)
+  // console.log('req.body.longURL', req.body.longURL) // debugging 
+  // const userURLs = req.body.longURL; // undefined 
 
-  // console.log('urlDatabase[id].longURL', urlDatabase[id].longURL) // debugging 
+  const templateVars = { 
+                      // missing something here or in urls_index 
+      urls: userURLs, 
+      user: user      // undefined error?? 
+    };
+
+  console.log('urls', urlsForUser) // debugging 
   res.render("urls_index", templateVars);
 }); 
 
+// GET urls/new 
 app.get("/urls/new", (req, res) => {  
   
   const email = req.body.email;
@@ -93,26 +123,29 @@ app.get("/urls/new", (req, res) => {
   
   const user = users[userId];
   const templateVars = { 
-    username: user.email
+    user: user
   };  
   res.render("urls_new", templateVars);
 });
 
-// POST url route 
+// POST url route (after the new url has been entered)
 app.post("/urls", (req, res) => {
-  const email = req.body.email;
+  // const email = req.body.email;
   const userId = req.cookies["userId"];
   
   if (!userId) {  // users not logged in cannot add urls to database 
     return res.status(401).send('Access Denied! Register or log in to use TinyApp!') 
   }
   const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
-  const savedShortURL = generateRandomString(); // Generate new short url 
-  urlDatabase[savedShortURL] = { longURL: savedLongURL, userID: userId }; // Save the two as key-value pair to the urlDatabase object 
-  res.redirect(`/urls/${savedShortURL}`); // Redirect the user to the show page for the new URL
+  const shortURL = generateRandomString(); // Generate new short url 
+  urlDatabase[shortURL] = { 
+      longURL: savedLongURL, 
+      userID: userId 
+  }; // Save the two as key-value pair to the urlDatabase object 
+  res.redirect(`/urls/${shortURL}`); // Redirect the user to the show page for the new URL
 });
 
-// Route handler that redirects shortURL's generated and saved to the longURL 
+// GET /u/:id - Route handler that redirects shortURL's generated and saved to the longURL 
 app.get("/u/:id", (req, res) => {
   
   const userId = req.cookies["userId"];
@@ -124,20 +157,18 @@ app.get("/u/:id", (req, res) => {
   }
     res.redirect(longURL);
 });
- 
+
+// GET /urls/:id
 app.get("/urls/:id", (req, res) => {
-  const email = req.body.email;
-  const userId = req.cookies["userId"];
+  const userId = req.cookies["userId"]; // this will change to req.session.user_id 
   const user = users[userId];
-  const id = req.params.id; // assigned req.params.id to a variable IDs
-  const longURL = urlDatabase[id].longURL; 
+  const id = req.params.id; // keep this 
+  const longURL = urlDatabase[id].longURL;  
 
   const templateVars = { 
-    id,
-    longURL,
-    shortURL: id,
-    users,
-    username: user.email  
+    id: id,
+    longURL,     // 
+    user: user      // this will change to users[req.session.userId]
   }; 
   res.render("urls_show", templateVars);
 });
@@ -167,7 +198,7 @@ app.get("/login", (req, res) => {
   }
 
   const templateVars = { 
-    users,
+    user,
     username: email
   };
 
@@ -199,15 +230,15 @@ app.post("/logout", (req, res) => {
 
 // GET 'Register' Route
 app.get("/register", (req, res) => {
-const email = req.body.email;
-const userId = req.cookies["userId"];
-const user = users[userId];
+  const email = req.body.email;
+  const userId = req.cookies["userId"];
+  const user = users[userId];
 
-// if logged in already, redirect to /urls
-if (userId) {
-  return res.redirect("/urls");
-}  
-return res.render("register", {username: null});
+  // if logged in already, redirect to /urls
+  if (userId) {
+    return res.redirect("/urls");
+  }  
+  res.render("register", {user: null});
 });
 
 // POST 'Register' Route - user inputs registration items 
