@@ -1,12 +1,34 @@
-# tinyapp
-## small app that shortens URLs 
-### Usage: Login or Register an account to start
-#### Create New URL: enter a full URL that you would like to shorten!
-##### Note: Don't forget the "http://"! 
-#### Edit: Edit your URLs to, I don't know, something(somewhere?) else?! 
-#### Delete: Delete your URLs! There is no going back. 
+# TinyApp Project
 
-# Functions: 
+TinyApp is a full stack web application built with Node and Express that allows users to shorten long URLs (à la bit.ly).
+
+## Final Product
+
+!["Home Page"](https://github.com/kcho15/tinyapp/blob/main/docs/home-page.PNG?raw=true)
+
+!["Create URL page"](https://github.com/kcho15/tinyapp/blob/main/docs/create-URL%20page.PNG?raw=true)
+
+!["New URL generated!"](https://github.com/kcho15/tinyapp/blob/main/docs/new-URL-page.png?raw=true) 
+
+!["URLs"](https://github.com/kcho15/tinyapp/blob/main/docs/URL-page.PNG?raw=true)
+
+## Dependencies
+
+- Node.js
+- Express
+- EJS
+- bcryptjs
+- cookie-session
+
+## Getting Started
+
+- Install all dependencies (using the `npm install` command).
+- Run the development web server using the `node express_server.js` command.
+
+
+
+
+## Functions: 
 
 Site Header:
 * if a user is logged in, the header shows:
@@ -18,14 +40,14 @@ Site Header:
 
 ## Route Checklist
 
-# GET /urls 
+## GET /urls 
 
 * if user is logged in:
     [x] (Minor) redirect to /urls
 * if user is not logged in:
     [x] (Minor) redirect to /login
 
-# GET /urls
+## GET /urls
 
 * if user is logged in:
   * returns HTML with:
@@ -39,7 +61,7 @@ Site Header:
 * if user is not logged in:
   * [x] returns HTML with a relevant error message
 
-# GET /urls/new
+## GET /urls/new
 
 [x] if user is logged in:
 [x] returns HTML with:
@@ -50,7 +72,7 @@ a form which contains:
 if user is not logged in:
 [x] redirects to the /login page
 
-# GET /urls/:id
+## GET /urls/:id
 
 if user is logged in and owns the URL for the given ID:
 returns HTML with:
@@ -67,14 +89,14 @@ if user is not logged in:
 if user is logged in but does not own the URL with the given ID:
 [x] returns HTML with a relevant error message
 
-# GET /u/:id
+## GET /u/:id
 
 if URL for the given ID exists:
 [x] redirects to the corresponding long URL
 if URL for the given ID does not exist:
 [x] (Minor) returns HTML with a relevant error message
 
-# POST /urls
+## POST /urls
 
 if user is logged in:
 [x] generates a short URL, saves it, and associates it with the user
@@ -82,7 +104,7 @@ if user is logged in:
 if user is not logged in:
 [x] (Minor) returns HTML with a relevant error message
 
-# POST /urls/:id
+## POST /urls/:id
 
 if user is logged in and owns the URL for the given ID:
 [x] updates the URL
@@ -92,7 +114,7 @@ if user is not logged in:
 if user is logged in but does not own the URL for the given ID:
 [x] (Minor) returns HTML with a relevant error message
 
-# POST /urls/:id/delete
+## POST /urls/:id/delete
 
 if user is logged in and owns the URL for the given ID:
 [x] deletes the URL
@@ -103,7 +125,7 @@ if user is not logged in:
 if user is logged in but does not own the URL for the given ID:
 [x] (Minor) returns HTML with a relevant error message
 
-# GET /login
+## GET /login
 
 if user is logged in:
 [x] (Minor) redirects to /urls
@@ -113,7 +135,7 @@ if user is not logged in:
 [x] input fields for email and password
 [x] submit button that makes a POST request to /login
 
-# GET /register
+## GET /register
 
 if user is logged in:
 [x] (Minor) redirects to /urls
@@ -123,7 +145,7 @@ returns HTML with:
 [x]  input fields for email and password
 [x]  a register button that makes a POST request to /register
 
-# POST /login
+## POST /login
 
 if email and password params match an existing user:
 [x] sets a cookie
@@ -131,7 +153,7 @@ if email and password params match an existing user:
 if email and password params don't match an existing user:
 [x] returns HTML with a relevant error message
 
-# POST /register
+## POST /register
 
 if email or password are empty:
 [x] returns HTML with a relevant error message
@@ -143,7 +165,7 @@ otherwise:
 [x] sets a cookie
 [x] redirects to /urls
 
-# POST /logout
+## POST /logout
 
 [x] deletes cookie
 [x] redirects to /login
