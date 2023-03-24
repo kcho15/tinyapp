@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser'); 
+const bcrypt = require('bcryptjs'); 
 
 // Global Objects 
 const urlDatabase = {
@@ -23,21 +24,17 @@ const users = {
   userA: {
     id: "userA",
     email: "a@a.com",
-    password: "1234",
-    
-    
-    // urls: "urls", 
+    password: "$2a$10$H5dxMo5PG6AOPHEfRMR.5uTpiIs3ZjqQ6Va.7l8vTjfJKBKpJXkuS", // Test p/w "1234"
   },
   userB: {
     id: "userB",
     email: "b@b.com",
-    password: "1234",
-
+    password: "$2a$10$H5dxMo5PG6AOPHEfRMR.5uTpiIs3ZjqQ6Va.7l8vTjfJKBKpJXkuS", // will not work without hash password  
   },
   userC: {
     id: "userC",
     email: "c@c.com",
-    password: "1234",
+    password: "1234", // will not work without hash password
 
   },
 };
@@ -265,27 +262,29 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
   const user = getUserByEmail(email);
   
-  if (!user || user.password !== password) {
+  if (!user) {
     return res.status(403).send('Please enter a valid username and password.') 
   }
   
-  const userId = user.id;          // save the email entered in the submission req.body
+  if (!bcrypt.compareSync(password, user.password)) {
+    return res.status(403).send('Please enter a valid username and password.')
+  }
+
+  const userId = user.id;         // save the email entered in the submission req.body
   res.cookie("userId", userId);  // set a cookie to store email 
   return res.redirect("/urls");  // redirect back to urls page         
 });
 
-// POST 'Log out' Route
+// POST 'Log out' Route 
 app.post("/logout", (req, res) => {
   
   res.clearCookie("userId")
   res.redirect("/login");
-});
+});   
 
 // GET 'Register' Route
 app.get("/register", (req, res) => {
-  const email = req.body.email;
-  const userId = req.cookies["userId"];
-  const user = users[userId];
+  const userId = req.cookies["userId"];   // will change to req.session 
   
   // if logged in already, redirect to /urls
   if (userId) {
@@ -297,7 +296,11 @@ app.get("/register", (req, res) => {
 // POST 'Register' Route - user inputs registration items 
 app.post("/register", (req, res) => {
   const email = req.body.email;
+  
+  // password hash-er 
   const password = req.body.password;
+  const salt = bcrypt.genSaltSync(); 
+  const hash = bcrypt.hashSync(password, salt); 
   
   if (!email || !password) {
     return res.status(400).send('Please enter a username and password.')
@@ -315,12 +318,9 @@ app.post("/register", (req, res) => {
   users[id] = {
     id,
     email,
-    password,
-  };
-  
-
-  
-
+    password: hash,
+  }; 
+   
   // Setting cookie 
   res.cookie('userId', id); // set user id as cookie 
   // console.log('user_id cookie', req.body.email)  // debugging
