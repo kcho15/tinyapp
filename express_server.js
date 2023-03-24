@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; // default port 8080 // 8081 for testing when nodemon crashes! 
 const cookieSession = require('cookie-session');
 const helpers = require('./helpers');   
 const bcrypt = require('bcryptjs'); 
@@ -30,19 +30,12 @@ const users = {
   userB: {
     id: "userB",
     email: "b@b.com",
-    password: "$2a$10$H5dxMo5PG6AOPHEfRMR.5uTpiIs3ZjqQ6Va.7l8vTjfJKBKpJXkuS", // will not work without hash password  
-  },
-  userC: {
-    id: "userC",
-    email: "c@c.com",
-    password: "1234", // will not work without hash password
-
+    password: "$2a$10$H5dxMo5PG6AOPHEfRMR.5uTpiIs3ZjqQ6Va.7l8vTjfJKBKpJXkuS", // Test p/w "1234"
   },
 };
 
-//
 // Helper Functions
-//
+// random string generator function 
 const generateRandomString = function() {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
@@ -75,9 +68,10 @@ app.use(cookieSession({
 }));
 
 
-//
+
 // Routes 
-//
+
+// Home page 
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
@@ -101,7 +95,6 @@ app.get("/urls", (req, res) => {
       user: user       
     };
 
-  // console.log('urls', urlsForUser) // debugging 
   res.render("urls_index", templateVars);
 }); 
 
@@ -109,7 +102,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {  
   const userId = req.session.user_id;
 
-  // redirect to /login if no cookie (not logged in)
+  // redirect to /login if no cookie exists (not logged in)
   if (!userId) {  
     return res.redirect("/login")
   }
@@ -119,10 +112,11 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     user: user
   };  
+
   res.render("urls_new", templateVars);
 });
 
-// POST url route (after the new url has been entered)
+// POST /url 
 app.post("/urls", (req, res) => {
   const userId = req.session.user_id;
 
@@ -132,12 +126,13 @@ app.post("/urls", (req, res) => {
   }
 
   // happy path - save the url submission 
-  const savedLongURL = req.body.longURL.trim(); // Save the long URL entered by the user
-  const shortURL = generateRandomString(); // Generate new short url 
+  const savedLongURL = req.body.longURL.trim();   // Save the long URL entered by the user
+  const shortURL = generateRandomString();        // Generate new short url 
   urlDatabase[shortURL] = { 
       longURL: savedLongURL, 
       userId, 
   }; 
+
   res.redirect(`/urls/${shortURL}`); // Redirect the user to the show page for the new URL
 });
 
@@ -150,20 +145,21 @@ app.get("/u/:id", (req, res) => {
     return res.status(401).send('<h1>Access Denied! Register or log in to use TinyApp!</h1>') 
   }
 
-  const shortURL = req.params.id; // assign the id parameter from the request URL to variable
-  const longURL = urlDatabase[shortURL].longURL; // Use the shortURL key in the urlDatabase to look up longURL value 
+  const shortURL = req.params.id;                 // assign the id parameter from the request URL to variable
+  const longURL = urlDatabase[shortURL].longURL;  // Use the shortURL key in the urlDatabase to look up longURL value 
   
   // if the longURL does not exist (shortURL key is invalid)
   if (!longURL) {     
     return res.status(404).send('<h1>404 Page Not Found</h1>');
   }
+
     res.redirect(longURL);
 });
 
 // GET /urls/:id
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id; // keep this 
-  const userId = req.session.user_id; // this will change to req.session.user_id 
+  const id = req.params.id;             
+  const userId = req.session.user_id;   
   const url = urlDatabase[id]; 
 
   // if not logged in, no access to urls
@@ -178,25 +174,22 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { 
     id: id,
     longURL,         
-    user: users[userId]      // this will change to users[req.session.userId]
+    user: users[userId]     
   }; 
+
   res.render("urls_show", templateVars);
 }); 
 
 // POST 'Delete' Route
 app.post("/urls/:id/delete", (req, res) => {
-const id = req.params.id; // keep this 
-const userId = req.session.user_id; // this will change to req.session.user_id 
+const id = req.params.id; 
+const userId = req.session.user_id; 
 const url = urlDatabase[id]; 
   
 // if url does not exist 
 if (!url) {
   return res.status(400).send('<h1>URL not found!</h1>') 
 }
-// // if id does not exist    
-// if (url.userId !== userId) {  
-//   return res.status(401).send('<h1>Access Denied! Cannot Delete URL!</h1>') 
-// }
 
 // if user does not own url
 if (url.userId !== userId) {      
@@ -209,8 +202,8 @@ res.redirect("/urls");
 
 // POST 'Edit' Route
 app.post("/urls/:id/edit", (req,res) => {
-const id = req.params.id; // keep this 
-const userId = req.session.user_id; // this will change to req.session.user_id 
+const id = req.params.id;  
+const userId = req.session.user_id; 
 const url = urlDatabase[id]; 
   
 // if not logged in, no access to urls
@@ -218,6 +211,7 @@ if (!userId) {
   return res.status(401).send('<h1>Access Denied!</h1>') 
 }
 
+// if url exists but userId does not match, no access 
 if (url && url.userId !== userId) {
   return res.status(401).send('<h1>Access Denied!</h1>') 
 }
@@ -226,6 +220,7 @@ urlDatabase[id] = {
   longURL: req.body.edit, 
   userId,
 }
+
 res.redirect("/urls");
 });
 
@@ -265,11 +260,12 @@ app.post("/login", (req, res) => {
 
   // set cookie to "id" property of user 
   req.session.user_id = user.id; 
-  return res.redirect("/urls");  // redirect back to urls page         
+  return res.redirect("/urls");          
 });
     
 // POST 'Log out' Route 
 app.post("/logout", (req, res) => {
+  
   // delete cookie session 
   req.session = null;
   res.redirect("/login");
@@ -277,22 +273,23 @@ app.post("/logout", (req, res) => {
 
 // GET 'Register' Route
 app.get("/register", (req, res) => {
-  const userId = req.session.user_id;   // will change to req.session 
+  const userId = req.session.user_id;   
   
   // if logged in already, redirect to /urls
   if (userId) {
     return res.redirect("/urls");
   }   
+
   res.render("register", {user: null});    
 }); 
   
-// POST 'Register' Route - user inputs registration items 
+// POST 'Register' Route 
 app.post("/register", (req, res) => {
   const email = req.body.email; 
   
   // password hash-er 
   const password = req.body.password;
-  const salt = bcrypt.genSaltSync(); 
+  const salt = bcrypt.genSaltSync();  
   const hash = bcrypt.hashSync(password, salt); 
    
   if (!email || !password) {
@@ -301,8 +298,6 @@ app.post("/register", (req, res) => {
   const userFound = helpers.getUserByEmail(email, users); 
   
   if (userFound) {
-    // console.log('get user fn', userFound);    // debugging 
-    // console.log('users', users);              // debugging 
     return res.status(400).send('That username is not available.')
   }  
   
