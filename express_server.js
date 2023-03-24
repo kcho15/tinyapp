@@ -12,6 +12,10 @@ const urlDatabase = {
   "afgghd": {
     longURL: "http://www.google.com",
     userID: "userB"
+  },
+  "sgq3y6": {
+    longURL: "http://www.google.com",
+    userID: "userC"  
   }
 }; 
  
@@ -27,6 +31,12 @@ const users = {
   userB: {
     id: "userB",
     email: "b@b.com",
+    password: "1234",
+
+  },
+  userC: {
+    id: "userC",
+    email: "c@c.com",
     password: "1234",
 
   },
@@ -183,7 +193,51 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 }); 
 
+// POST 'Delete' Route
+app.post("/urls/:id/delete", (req, res) => {
+const id = req.params.id; // keep this 
+const userId = req.cookies["userId"]; // this will change to req.session.user_id 
+const url = urlDatabase[id]; 
+  
+// if url does not exist 
+if (!url) {
+  return res.status(400).send('<h1>URL not found!</h1>') 
+}
+// // if id does not exist    
+// if (url.userID !== userId) {  
+//   return res.status(401).send('<h1>Access Denied! Cannot Delete URL!</h1>') 
+// }
 
+// if user does not own url
+if (url.userID !== userId) {      
+  return res.status(401).send('<h1>Access Denied! User does not own URL!</h1>') 
+}
+  
+delete urlDatabase[id];      
+res.redirect("/urls");
+});          
+
+// POST 'Edit' Route
+app.post("/urls/:id/edit", (req,res) => {
+const id = req.params.id; // keep this 
+const userId = req.cookies["userId"]; // this will change to req.session.user_id 
+const url = urlDatabase[id]; 
+  
+// if not logged in, no access to urls
+if (!userId) {
+  return res.status(401).send('<h1>Access Denied!</h1>') 
+}
+
+if (url && url.userID !== userId) {
+  return res.status(401).send('<h1>Access Denied!</h1>') 
+}
+
+urlDatabase[id] = { 
+  longURL: req.body.edit, 
+  userID: userId,
+}
+res.redirect("/urls");
+});
 
 // GET 'Login' Route
 app.get("/login", (req, res) => {
@@ -264,17 +318,8 @@ app.post("/register", (req, res) => {
     password,
   };
   
-  // POST 'Edit' Route
-  app.post("/urls/:id/edit", (req,res) => {
-    urlDatabase[req.params.id].longURL = req.body.edit;  // changed to longURL
-    res.redirect("/urls");
-  });
+
   
-  // POST 'Delete' Route
-  app.post("/urls/:id/delete", (req, res) => {
-    delete urlDatabase[req.params.id];      
-    res.redirect("/urls");
-  });
 
   // Setting cookie 
   res.cookie('userId', id); // set user id as cookie 
